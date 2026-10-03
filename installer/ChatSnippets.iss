@@ -1,6 +1,6 @@
 ; Установщик ClaudeCode Chat Snippets (Inno Setup 6). Сборка: installer\build.ps1
 #define AppName "ClaudeCode Chat Snippets"
-#define AppVersion "1.0.0"
+#define AppVersion "1.0.1"
 #define AppExe "ChatSnippets.exe"
 
 [Setup]
