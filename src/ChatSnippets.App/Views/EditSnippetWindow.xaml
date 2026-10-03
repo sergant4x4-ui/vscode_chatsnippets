@@ -35,8 +35,10 @@
                        TextWrapping="Wrap" Visibility="Collapsed"/>
 
             <Grid Margin="0,16,0,0">
-                <Button x:Name="DeleteButton" Content="Delete" HorizontalAlignment="Left" VerticalAlignment="Center"
-                        Foreground="{StaticResource Danger}" Background="Transparent" BorderThickness="0" Click="DeleteButton_Click"/>
+                <Button x:Name="DeleteButton" HorizontalAlignment="Left" VerticalAlignment="Center" Padding="4,2"
+                        Background="Transparent" BorderThickness="0" Click="DeleteButton_Click">
+                    <TextBlock Text="Delete" Foreground="{StaticResource Danger}"/>
+                </Button>
                 <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
                     <Button x:Name="SaveButton" Content="Save" Width="88" Height="34" IsDefault="True"
                             Background="#1A73FF" Foreground="White" BorderThickness="0" Click="SaveButton_Click"/>

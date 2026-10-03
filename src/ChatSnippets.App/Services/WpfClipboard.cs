@@ -38,6 +38,12 @@ internal sealed class WpfClipboard : IClipboardAccess
         catch (COMException) { throw new ClipboardBusyException(); }
     }
 
+    public string? ReadText()
+    {
+        try { return Clipboard.ContainsText() ? Clipboard.GetText() : null; }
+        catch (COMException) { throw new ClipboardBusyException(); }
+    }
+
     public void WriteText(string text)
     {
         try { Clipboard.SetDataObject(text, copy: true); }

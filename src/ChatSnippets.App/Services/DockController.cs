@@ -41,7 +41,7 @@ internal sealed class DockController
         _hoverTimer.Tick += (_, _) => OnHoverTick();
         _slideTimer.Tick += (_, _) => OnSlideTick();
         _flag.Clicked += Toggle;
-        _panel.MinimizeClicked += Collapse;
+        _panel.MinimizeClicked += () => Collapse("minus button");
         _panel.SideChosen += SetSide;
         var title = _panel.TitleBarElement;
         title.MouseLeftButtonDown += TitleBar_Down;
@@ -52,6 +52,9 @@ internal sealed class DockController
         SystemEvents.DisplaySettingsChanged += (_, _) => _panel.Dispatcher.BeginInvoke(Relayout);
         SystemEvents.UserPreferenceChanged += (_, _) => _panel.Dispatcher.BeginInvoke(Relayout);
     }
+
+    /// <summary>Панель свернулась (по таймеру, флажку или кнопке) — например, выключить режим редактирования.</summary>
+    public event Action? Collapsed;
 
     public bool IsExpanded => _expanded;
     public bool Suspended { get; set; }
@@ -70,11 +73,21 @@ internal sealed class DockController
 
     public Task FlashFlagAsync() => _flag.FlashAsync();
 
-    public void Toggle() { if (_expanded) Collapse(); else Expand(); }
+    public void Toggle() { if (_expanded) Collapse("flag click"); else Expand(); }
+
+    /// <summary>Повторный запуск программы: вернуть панель на экран и показать.</summary>
+    public void Reveal()
+    {
+        AppLog.Write("Reveal (second launch)");
+        Relayout();
+        _outsideSince = DateTime.UtcNow;
+        Expand();
+    }
 
     public void Expand()
     {
         if (_expanded) return;
+        AppLog.Write("Expand");
         _expanded = true;
         _outsideSince = DateTime.UtcNow;
         var m = Measure();
@@ -84,10 +97,12 @@ internal sealed class DockController
                    DockLogic.PanelLeft(m.Work, _settings.Side, true, m.PanelW), done: null);
     }
 
-    public void Collapse()
+    public void Collapse(string reason = "manual")
     {
         if (!_expanded) return;
+        AppLog.Write("Collapse: " + reason);
         _expanded = false;
+        Collapsed?.Invoke();
         var m = Measure();
         _flag.SetDirection(_settings.Side == DockSide.Left);        // стрелка смотрит внутрь экрана: «выдвинуть»
         StartSlide(DockLogic.PanelLeft(m.Work, _settings.Side, true, m.PanelW),
@@ -105,7 +120,9 @@ internal sealed class DockController
     /// <summary>Пересчитать размеры и позиции без анимации (старт, смена числа иконок/стороны/DPI).</summary>
     public void Relayout()
     {
+        AppLog.Write($"Relayout expanded={_expanded}");
         _slideTimer.Stop();
+        _panel.ApplySide(_settings.Side);
         var m = Measure();
         _settings.Top = DockLogic.ClampTop(m.Work, m.Work.Top + _settings.Top, m.PanelH) - m.Work.Top;
         var panelX = DockLogic.PanelLeft(m.Work, _settings.Side, _expanded, m.PanelW);
@@ -154,27 +171,61 @@ internal sealed class DockController
     }
 
     // ---- таймер ухода мыши ----
+    int _ticks;
+
+    /// <summary>
+    /// Раз в секунду проверяем, что флажок на месте и поверх всех окон (его могли скрыть/сдвинуть
+    /// смена мониторов, другое окно «поверх всех» и т.п.). Если нет — возвращаем.
+    /// </summary>
+    void KeepAlive()
+    {
+        if (_dragging || _slideTimer.IsEnabled) return;
+        var m = Measure();
+        Native.GetWindowRect(_flagHwnd, out var r);
+        var expectedX = DockLogic.FlagLeft(m.Work, _settings.Side, _expanded, m.PanelW, m.FlagW);
+        var expectedY = m.Work.Top + _settings.Top;
+        var panelMissing = _expanded && !Native.IsWindowVisible(_panelHwnd);
+        if (!Native.IsWindowVisible(_flagHwnd) || panelMissing || Math.Abs(r.Left - expectedX) > 2 || Math.Abs(r.Top - expectedY) > 2)
+        {
+            AppLog.Write($"KeepAlive: relayout (flagVisible={Native.IsWindowVisible(_flagHwnd)}, panelMissing={panelMissing}, flag=({r.Left},{r.Top}) expected=({expectedX},{expectedY}))");
+            Relayout();
+            return;
+        }
+        const uint keep = Native.SWP_NOMOVE | Native.SWP_NOSIZE | Native.SWP_NOACTIVATE | Native.SWP_SHOWWINDOW;
+        Native.SetWindowPos(_flagHwnd, Native.HWND_TOPMOST, 0, 0, 0, 0, keep);
+        if (_expanded) Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST, 0, 0, 0, 0, keep);
+    }
+
     void OnHoverTick()
     {
+        if (++_ticks % 5 == 0) KeepAlive();
         if (!_expanded || Pinned || Suspended || _dragging) { _outsideSince = DateTime.UtcNow; return; }
         Native.GetCursorPos(out var p);
         var m = Measure();
         var panelRect = new PxRect(DockLogic.PanelLeft(m.Work, _settings.Side, true, m.PanelW), m.Work.Top + _settings.Top, m.PanelW, m.PanelH);
         var flagRect = new PxRect(DockLogic.FlagLeft(m.Work, _settings.Side, true, m.PanelW, m.FlagW), m.Work.Top + _settings.Top, m.FlagW, m.FlagH);
         if (panelRect.Contains(p.X, p.Y) || flagRect.Contains(p.X, p.Y)) { _outsideSince = DateTime.UtcNow; return; }
-        if (DateTime.UtcNow - _outsideSince >= LeaveDelay) Collapse();
+        if (DateTime.UtcNow - _outsideSince >= LeaveDelay) Collapse("mouse left the panel");
+    }
+
+    static bool IsOnButton(DependencyObject? element)
+    {
+        for (var d = element; d is not null; d = d is Visual or System.Windows.Media.Media3D.Visual3D ? VisualTreeHelper.GetParent(d) : LogicalTreeHelper.GetParent(d))
+            if (d is System.Windows.Controls.Primitives.ButtonBase) return true;
+        return false;
     }
 
     // ---- перетаскивание за шапку ----
     void TitleBar_Down(object sender, MouseButtonEventArgs e)
     {
-        if (e.OriginalSource is not (System.Windows.Controls.Border or System.Windows.Controls.StackPanel)) return; // клики по кнопкам не тащат
+        var onButton = IsOnButton(e.OriginalSource as DependencyObject);
+        AppLog.Write($"drag down: source={e.OriginalSource?.GetType().Name}, onButton={onButton}");
+        if (onButton) return;   // клики по кнопкам не тащат
         _dragging = true;
         Native.GetCursorPos(out _dragStartCursor);
         var m = Measure();
         _dragStartLeft = DockLogic.PanelLeft(m.Work, _settings.Side, _expanded, m.PanelW);
         _dragStartTop = m.Work.Top + _settings.Top;
-        _flag.Hide();
         ((UIElement)sender).CaptureMouse();
     }
 
@@ -203,6 +254,7 @@ internal sealed class DockController
         ((UIElement)sender).ReleaseMouseCapture();
         Native.GetCursorPos(out var p);
         var m = Measure(Native.MonitorFromPoint(p, Native.MONITOR_DEFAULTTONEAREST));   // монитор, куда отпустили панель
+        AppLog.Write($"drag up: cursor=({p.X},{p.Y}) start=({_dragStartCursor.X},{_dragStartCursor.Y})");
         var dx = p.X - _dragStartCursor.X;
         var dy = p.Y - _dragStartCursor.Y;
         if (Math.Abs(dx) > 3 || Math.Abs(dy) > 3)      // простой клик по шапке — не перетаскивание

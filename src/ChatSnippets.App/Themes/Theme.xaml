@@ -42,6 +42,12 @@
                             <TextBlock Text="&#xE73E;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="#0E1A12"
                                        HorizontalAlignment="Center" VerticalAlignment="Center"/>
                         </Border>
+                        <Border x:Name="EditBadge" Visibility="Collapsed" Width="18" Height="18" CornerRadius="9"
+                                Background="{StaticResource Accent}" HorizontalAlignment="Right" VerticalAlignment="Top"
+                                Margin="0,-4,-4,0" IsHitTestVisible="False">
+                            <TextBlock Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="10" Foreground="White"
+                                       HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                        </Border>
                         <Border x:Name="Focus" CornerRadius="11" BorderThickness="2" BorderBrush="{StaticResource Accent}"
                                 Visibility="Collapsed" IsHitTestVisible="False"/>
                     </Grid>
@@ -60,6 +66,10 @@
                         <Trigger Property="IsEnabled" Value="False">
                             <Setter TargetName="Inner" Property="Opacity" Value="0.4"/>
                         </Trigger>
+                        <DataTrigger Binding="{Binding EditMode}" Value="True">
+                            <Setter TargetName="EditBadge" Property="Visibility" Value="Visible"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                        </DataTrigger>
                         <DataTrigger Binding="{Binding State}" Value="Success">
                             <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Success}"/>
                             <Setter TargetName="CheckBadge" Property="Visibility" Value="Visible"/>
@@ -121,6 +131,64 @@
                             <Setter TargetName="G" Property="Foreground" Value="{StaticResource Accent}"/>
                         </DataTrigger>
                     </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Переключатель режима редактирования под кнопкой «+» -->
+    <Style x:Key="EditToggle" TargetType="ToggleButton">
+        <Setter Property="Width" Value="64"/>
+        <Setter Property="Height" Value="28"/>
+        <Setter Property="Margin" Value="0,4,0,0"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Bd" CornerRadius="8" Background="{StaticResource ButtonBg}"
+                            BorderBrush="{StaticResource BorderBrushNormal}" BorderThickness="1">
+                        <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                            <TextBlock x:Name="G" Text="&#xE70F;" FontFamily="Segoe MDL2 Assets" FontSize="12"
+                                       Foreground="{StaticResource TextSecondary}" Margin="0,0,5,0" VerticalAlignment="Center"/>
+                            <TextBlock x:Name="L" Text="Edit" FontSize="11" Foreground="{StaticResource TextSecondary}" VerticalAlignment="Center"/>
+                        </StackPanel>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="{StaticResource Accent}"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            <Setter TargetName="G" Property="Foreground" Value="White"/>
+                            <Setter TargetName="L" Property="Foreground" Value="White"/>
+                            <Setter TargetName="L" Property="Text" Value="Done"/>
+                        </Trigger>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Своя тёмная подсказка: стандартная светлая сливалась со светлым текстом -->
+    <Style TargetType="ToolTip">
+        <Setter Property="Background" Value="#2B2D34"/>
+        <Setter Property="Foreground" Value="#F2F3F5"/>
+        <Setter Property="BorderBrush" Value="{StaticResource Accent}"/>
+        <Setter Property="BorderThickness" Value="1"/>
+        <Setter Property="Padding" Value="10,7"/>
+        <Setter Property="FontFamily" Value="Segoe UI"/>
+        <Setter Property="FontSize" Value="13"/>
+        <Setter Property="HasDropShadow" Value="False"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToolTip">
+                    <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                            BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="7"
+                            Padding="{TemplateBinding Padding}">
+                        <ContentPresenter TextElement.Foreground="{TemplateBinding Foreground}"/>
+                    </Border>
                 </ControlTemplate>
             </Setter.Value>
         </Setter>

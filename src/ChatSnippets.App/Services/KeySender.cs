@@ -8,17 +8,17 @@ internal sealed class KeySender : IKeySender
 {
     static readonly int[] Modifiers = { Native.VK_SHIFT, Native.VK_CONTROL, Native.VK_MENU, Native.VK_LWIN, Native.VK_RWIN };
 
-    public async Task SendCtrlVAsync()
+    public async Task SendCtrlAsync(int vk)
     {
-        // Хоткей вроде Ctrl+Alt+1 ещё зажат: без ожидания получилось бы Ctrl+Alt+V.
+        // Хоткей вроде Ctrl+Alt+1 ещё зажат: без ожидания получилось бы Ctrl+Alt+клавиша.
         var deadline = DateTime.UtcNow.AddSeconds(1);
         while (AnyModifierDown() && DateTime.UtcNow < deadline)
             await Task.Delay(15);
 
         var inputs = new[]
         {
-            Key(Native.VK_CONTROL, false), Key(Native.VK_V, false),
-            Key(Native.VK_V, true), Key(Native.VK_CONTROL, true),
+            Key(Native.VK_CONTROL, false), Key(vk, false),
+            Key(vk, true), Key(Native.VK_CONTROL, true),
         };
         Native.SendInput((uint)inputs.Length, inputs, Marshal.SizeOf<Native.INPUT>());
     }

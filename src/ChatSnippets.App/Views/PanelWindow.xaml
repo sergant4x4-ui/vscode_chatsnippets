@@ -4,28 +4,73 @@
         Title="Chat Snippets" Width="80" Height="928"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True"
-        SnapsToDevicePixels="True" UseLayoutRounding="True" FontFamily="Segoe UI">
+        SnapsToDevicePixels="True" UseLayoutRounding="True" FontFamily="Segoe UI"
+        ToolTipService.InitialShowDelay="350" ToolTipService.ShowDuration="30000">
+    <Window.Resources>
+        <!-- Одна подсказка для всех плиток: показывает, что будет вставлено -->
+        <DataTemplate x:Key="TileTip">
+            <TextBlock Text="{Binding TooltipText}" TextWrapping="Wrap" MaxWidth="340" FontSize="13" Foreground="#F2F3F5"/>
+        </DataTemplate>
+    </Window.Resources>
     <Border Background="{StaticResource WindowBg}" CornerRadius="8" BorderBrush="{StaticResource BorderBrushNormal}" BorderThickness="1">
         <Grid>
             <Grid.RowDefinitions>
-                <RowDefinition Height="32"/>
+                <RowDefinition Height="52"/>
                 <RowDefinition Height="*"/>
             </Grid.RowDefinitions>
 
-            <Border x:Name="TitleBar" Grid.Row="0" Background="Transparent" CornerRadius="8,8,0,0" ToolTip="Chat Snippets">
-                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
-                    <ToggleButton x:Name="PinButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE718;"
-                                  ToolTip="Keep panel open" AutomationProperties.Name="Keep panel open"
-                                  IsChecked="{Binding Pinned, Mode=TwoWay}"/>
-                    <Button x:Name="GearButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE713;"
-                            ToolTip="Settings" AutomationProperties.Name="Settings" Click="GearButton_Click"/>
-                    <Button x:Name="MinimizeButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE921;"
-                            ToolTip="Hide panel" AutomationProperties.Name="Hide panel" Click="MinimizeButton_Click"/>
-                </StackPanel>
+            <!-- Шапка: сверху широкая «ручка» для перетаскивания, под ней кнопки -->
+            <Border x:Name="TitleBar" Grid.Row="0" Background="Transparent" CornerRadius="8,8,0,0" Cursor="SizeAll">
+                <Grid>
+                    <Grid.RowDefinitions>
+                        <RowDefinition Height="24"/>
+                        <RowDefinition Height="28"/>
+                    </Grid.RowDefinitions>
+                    <Border x:Name="DragGrip" Grid.Row="0" Margin="5,5,5,0" CornerRadius="5" Background="#3A3D4A" BorderBrush="#555967" BorderThickness="1"
+                            ToolTip="Drag here to move the panel" Cursor="SizeAll">
+                        <Rectangle Margin="8,4" IsHitTestVisible="False">
+                            <Rectangle.Fill>
+                                <DrawingBrush TileMode="Tile" Viewport="0,0,7,7" ViewportUnits="Absolute"
+                                              Viewbox="0,0,7,7" ViewboxUnits="Absolute">
+                                    <DrawingBrush.Drawing>
+                                        <GeometryDrawing Brush="#B9BCC5">
+                                            <GeometryDrawing.Geometry>
+                                                <EllipseGeometry Center="3.5,3.5" RadiusX="1.5" RadiusY="1.5"/>
+                                            </GeometryDrawing.Geometry>
+                                        </GeometryDrawing>
+                                    </DrawingBrush.Drawing>
+                                </DrawingBrush>
+                            </Rectangle.Fill>
+                        </Rectangle>
+                    </Border>
+                    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Arrow">
+                        <ToggleButton x:Name="PinButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE718;"
+                                      ToolTip="Keep panel open" AutomationProperties.Name="Keep panel open"
+                                      IsChecked="{Binding Pinned, Mode=TwoWay}"/>
+                        <Button x:Name="GearButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE713;"
+                                ToolTip="Settings" AutomationProperties.Name="Settings" Click="GearButton_Click"/>
+                        <Button x:Name="MinimizeButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE921;"
+                                ToolTip="Hide panel" AutomationProperties.Name="Hide panel" Click="MinimizeButton_Click"/>
+                    </StackPanel>
+                </Grid>
             </Border>
 
             <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
                 <StackPanel Margin="8,8,8,8">
+                    <!-- Постоянная плитка: исправить раскладку -->
+                    <Button Style="{StaticResource SnippetButton}" DataContext="{Binding LayoutFix}"
+                            Command="{Binding DataContext.LayoutFixCommand, RelativeSource={RelativeSource AncestorType=Window}}"
+                            AutomationProperties.Name="{Binding AutomationName}">
+                        <Button.ToolTip>
+                            <ToolTip ContentTemplate="{StaticResource TileTip}" Content="{Binding}"/>
+                        </Button.ToolTip>
+                        <Button.ContextMenu>
+                            <ContextMenu>
+                                <MenuItem Header="Hotkey..." Click="LayoutHotkeyMenu_Click"/>
+                            </ContextMenu>
+                        </Button.ContextMenu>
+                    </Button>
+
                     <ItemsControl x:Name="SnippetList" ItemsSource="{Binding Items}">
                         <ItemsControl.ItemTemplate>
                             <DataTemplate>
@@ -35,14 +80,13 @@
                                         AutomationProperties.Name="{Binding AutomationName}"
                                         PreviewMouseLeftButtonDown="Snippet_PreviewMouseLeftButtonDown"
                                         PreviewMouseMove="Snippet_PreviewMouseMove" Drop="Snippet_Drop">
+                                    <Button.ToolTip>
+                                        <ToolTip ContentTemplate="{StaticResource TileTip}" Content="{Binding}"/>
+                                    </Button.ToolTip>
                                     <Button.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Edit..."
-                                                      Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                      CommandParameter="{Binding}"/>
-                                            <MenuItem Header="Delete"
-                                                      Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
-                                                      CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Edit..." Click="EditMenu_Click"/>
+                                            <MenuItem Header="Delete" Click="DeleteMenu_Click"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
                                 </Button>
@@ -51,6 +95,9 @@
                     </ItemsControl>
                     <Button Style="{StaticResource AddButton}" Command="{Binding AddCommand}"
                             ToolTip="Add icon" AutomationProperties.Name="Add icon"/>
+                    <ToggleButton Style="{StaticResource EditToggle}" IsChecked="{Binding EditMode, Mode=TwoWay}"
+                                  ToolTip="Edit mode: click an icon to change its picture, text or hotkey"
+                                  AutomationProperties.Name="Edit mode"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

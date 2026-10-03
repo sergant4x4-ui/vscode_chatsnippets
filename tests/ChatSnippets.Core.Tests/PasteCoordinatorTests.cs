@@ -18,7 +18,19 @@ public class PasteCoordinatorTests
         public object? Snapshot() { MaybeBusy(); Log.Add("read"); return ClipboardText; }
         public void WriteText(string text) { MaybeBusy(); Log.Add("write:" + text); ClipboardText = text; }
         public void Restore(object? previous) { MaybeBusy(); Log.Add("restore:" + ((string?)previous ?? "<null>")); ClipboardText = (string?)previous; }
-        public Task SendCtrlVAsync() { Log.Add("ctrl+v"); return Task.CompletedTask; }
+        public string? Selection;          // что скопируется по Ctrl+C, если есть выделение
+        public string AllText = "";        // что скопируется по Ctrl+C после Ctrl+A
+        public string? Pasted;             // что реально вставилось по Ctrl+V
+        bool _selectedAll;
+        public string? ReadText() { MaybeBusy(); Log.Add("text"); return ClipboardText; }
+        public Task SendCtrlAsync(int vk)
+        {
+            Log.Add("ctrl+" + char.ToLowerInvariant((char)vk));
+            if (vk == 'A') _selectedAll = true;
+            if (vk == 'C') { if (Selection is not null) ClipboardText = Selection; else if (_selectedAll) ClipboardText = AllText; }
+            if (vk == 'V') Pasted = ClipboardText;
+            return Task.CompletedTask;
+        }
     }
 
     static PasteCoordinator Make(Fakes f) => new(f, f, f, _ => Task.CompletedTask);
@@ -91,5 +103,60 @@ public class PasteCoordinatorTests
             "read", "write:a", "ctrl+v", "restore:старое",
             "read", "write:b", "ctrl+v", "restore:старое",
         }, f.Log);
+    }
+
+    // ---- исправление раскладки ----
+
+    [Fact]
+    public async Task FixLayout_UsesSelection_WhenThereIsOne()
+    {
+        var f = new Fakes { Selection = "ghbdtn" };
+        Assert.Equal(LayoutFixResult.Fixed, await Make(f).FixLayoutAsync());
+        Assert.Equal("привет", f.Pasted);
+        Assert.Equal("старое", f.ClipboardText);               // прежний буфер возвращён
+        Assert.DoesNotContain("ctrl+a", f.Log);                // выделение было — всё поле не трогаем
+    }
+
+    [Fact]
+    public async Task FixLayout_SelectsAll_WhenNothingSelected()
+    {
+        var f = new Fakes { AllText = "ghbdtn vbh" };
+        Assert.Equal(LayoutFixResult.Fixed, await Make(f).FixLayoutAsync());
+        Assert.Equal("привет мир", f.Pasted);
+        Assert.Equal("старое", f.ClipboardText);
+        Assert.True(f.Log.IndexOf("ctrl+a") < f.Log.LastIndexOf("ctrl+c"));
+    }
+
+    [Fact]
+    public async Task FixLayout_EmptyField_NothingPasted_ClipboardRestored()
+    {
+        var f = new Fakes { AllText = "" };
+        Assert.Equal(LayoutFixResult.NothingToFix, await Make(f).FixLayoutAsync());
+        Assert.Null(f.Pasted);
+        Assert.Equal("старое", f.ClipboardText);
+    }
+
+    [Fact]
+    public async Task FixLayout_NothingChanges_NothingPasted()
+    {
+        var f = new Fakes { Selection = "123" };
+        Assert.Equal(LayoutFixResult.NothingToFix, await Make(f).FixLayoutAsync());
+        Assert.Null(f.Pasted);
+    }
+
+    [Fact]
+    public async Task FixLayout_NotVsCode_DoesNothing()
+    {
+        var f = new Fakes { Process = "chrome", Selection = "ghbdtn" };
+        Assert.Equal(LayoutFixResult.NotVsCode, await Make(f).FixLayoutAsync());
+        Assert.Empty(f.Log);
+    }
+
+    [Fact]
+    public async Task FixLayout_BusyClipboard_GivesUp()
+    {
+        var f = new Fakes { BusyFailuresLeft = 99, Selection = "ghbdtn" };
+        Assert.Equal(LayoutFixResult.ClipboardBusy, await Make(f).FixLayoutAsync());
+        Assert.Null(f.Pasted);
     }
 }

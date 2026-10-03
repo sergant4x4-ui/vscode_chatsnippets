@@ -8,7 +8,7 @@ internal static class Native
     public const int WS_EX_NOACTIVATE = 0x08000000;
     public const int WS_EX_TOOLWINDOW = 0x00000080;
     public const int SW_HIDE = 0, SW_SHOWNOACTIVATE = 4;
-    public const uint SWP_NOACTIVATE = 0x0010, SWP_SHOWWINDOW = 0x0040;
+    public const uint SWP_NOSIZE = 0x0001, SWP_NOMOVE = 0x0002, SWP_NOACTIVATE = 0x0010, SWP_SHOWWINDOW = 0x0040;
     public static readonly IntPtr HWND_TOPMOST = new(-1);
     public const int WM_HOTKEY = 0x0312;
     public const uint MOD_NOREPEAT = 0x4000;
@@ -47,6 +47,8 @@ internal static class Native
     [DllImport("user32.dll")] public static extern bool GetCursorPos(out POINT p);
     [DllImport("user32.dll")] public static extern bool SetWindowPos(IntPtr hWnd, IntPtr after, int x, int y, int cx, int cy, uint flags);
     [DllImport("user32.dll")] public static extern bool ShowWindow(IntPtr hWnd, int cmd);
+    [DllImport("user32.dll")] public static extern bool IsWindowVisible(IntPtr hWnd);
+    [DllImport("user32.dll")] public static extern bool GetWindowRect(IntPtr hWnd, out RECT rect);
     [DllImport("user32.dll")] public static extern int GetWindowLong(IntPtr hWnd, int index);
     [DllImport("user32.dll")] public static extern int SetWindowLong(IntPtr hWnd, int index, int value);
     [DllImport("user32.dll")] public static extern IntPtr MonitorFromWindow(IntPtr hWnd, uint flags);

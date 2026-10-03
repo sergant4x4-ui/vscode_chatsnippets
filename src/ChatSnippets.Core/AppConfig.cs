@@ -22,4 +22,6 @@ public sealed class AppConfig
 {
     public List<Snippet> Snippets { get; set; } = new();
     public WindowSettings Window { get; set; } = new();
+    /// <summary>Глобальный хоткей «исправить раскладку»; null — не назначен.</summary>
+    public string? LayoutFixHotkey { get; set; }
 }

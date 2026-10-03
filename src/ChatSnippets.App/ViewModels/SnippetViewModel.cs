@@ -5,15 +5,11 @@ using ChatSnippets.Core;
 
 namespace ChatSnippets.App.ViewModels;
 
-public enum SnippetState { Normal, Success, Error }
-
-public sealed class SnippetViewModel : ObservableBase
+public sealed class SnippetViewModel : TileViewModel
 {
+    const int TooltipLimit = 600;
     static readonly ImageSource Placeholder = MakePlaceholder();
     readonly IconStore _icons;
-    ImageSource _icon = Placeholder;
-    string _hotkeyDisplay = "";
-    SnippetState _state;
 
     public SnippetViewModel(Snippet model, IconStore icons)
     {
@@ -23,23 +19,27 @@ public sealed class SnippetViewModel : ObservableBase
     }
 
     public Snippet Model { get; }
-    public ImageSource Icon { get => _icon; private set => Set(ref _icon, value); }
-    public string HotkeyDisplay { get => _hotkeyDisplay; private set => Set(ref _hotkeyDisplay, value); }
-    public SnippetState State { get => _state; private set => Set(ref _state, value); }
-    public string AutomationName => string.IsNullOrEmpty(HotkeyDisplay) ? "Paste snippet" : $"Paste snippet, {HotkeyDisplay}";
+
+    public override string AutomationName =>
+        string.IsNullOrEmpty(HotkeyDisplay) ? "Paste snippet" : $"Paste snippet, {HotkeyDisplay}";
+
+    /// <summary>То, что будет вставлено: показываем при наведении (длинный текст обрезаем).</summary>
+    public override string TooltipText
+    {
+        get
+        {
+            var text = Model.Text;
+            if (string.IsNullOrWhiteSpace(text)) return "(no text)";
+            return text.Length > TooltipLimit ? text[..TooltipLimit] + "…" : text;
+        }
+    }
 
     public void Refresh()
     {
         Icon = LoadIcon();
         HotkeyDisplay = Hotkey.TryParse(Model.Hotkey, out var h) ? h.ToString() : "";
         Raise(nameof(AutomationName));
-    }
-
-    public async Task FlashAsync(SnippetState state)
-    {
-        State = state;
-        await Task.Delay(600);
-        State = SnippetState.Normal;
+        Raise(nameof(TooltipText));
     }
 
     ImageSource LoadIcon()

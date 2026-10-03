@@ -50,7 +50,7 @@ public class DockLogicTests
     [Theory]
     [InlineData(-50, 100, 0)]
     [InlineData(500, 100, 500)]
-    [InlineData(5000, 928, 1040 - 928)]
+    [InlineData(5000, 980, 1040 - 980)]
     public void ClampTop(int top, int height, int expected) =>
         Assert.Equal(expected, DockLogic.ClampTop(Work, top, height));
 
@@ -59,12 +59,12 @@ public class DockLogicTests
         Assert.Equal(0, DockLogic.ClampTop(Work, 300, 2000));
 
     [Fact]
-    public void PanelHeight_ThirteenItems_Is928AtScale1() =>
-        Assert.Equal(928, DockLogic.PanelHeightPx(new PxRect(0, 0, 1920, 2000), 13, 1.0));
+    public void PanelHeight_ThirteenItems_Is980AtScale1() =>
+        Assert.Equal(980, DockLogic.PanelHeightPx(new PxRect(0, 0, 1920, 2000), 13, 1.0));
 
     [Fact]
     public void PanelHeight_ScalesWithDpi() =>
-        Assert.Equal(1392, DockLogic.PanelHeightPx(new PxRect(0, 0, 1920, 2000), 13, 1.5));
+        Assert.Equal(1470, DockLogic.PanelHeightPx(new PxRect(0, 0, 1920, 2000), 13, 1.5));
 
     [Fact]
     public void PanelHeight_CappedByWorkArea() =>
@@ -72,5 +72,5 @@ public class DockLogicTests
 
     [Fact]
     public void PanelHeight_OnlyAddButton() =>
-        Assert.Equal(32 + 8 + 64 + 8, DockLogic.PanelHeightPx(new PxRect(0, 0, 1920, 2000), 1, 1.0));
+        Assert.Equal(52 + 8 + 64 + 8 + 32, DockLogic.PanelHeightPx(new PxRect(0, 0, 1920, 2000), 1, 1.0));
 }
