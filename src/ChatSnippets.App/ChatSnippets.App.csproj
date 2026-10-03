@@ -13,6 +13,8 @@
     <AssemblyName>ChatSnippets</AssemblyName>
     <RootNamespace>ChatSnippets.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
+    <ApplicationIcon>Assets\chat-snippets.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>
+
