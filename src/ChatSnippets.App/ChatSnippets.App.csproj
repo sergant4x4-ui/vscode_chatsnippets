@@ -14,6 +14,10 @@
     <RootNamespace>ChatSnippets.App</RootNamespace>
     <ApplicationManifest>app.manifest</ApplicationManifest>
     <ApplicationIcon>Assets\chat-snippets.ico</ApplicationIcon>
+    <Authors>Егоров Сергей aka Evpatiy</Authors>
+    <Company>Егоров Сергей aka Evpatiy</Company>
+    <Product>ClaudeCode Chat Snippets</Product>
+    <Version>1.0.0</Version>
   </PropertyGroup>
 
 </Project>

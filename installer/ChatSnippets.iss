@@ -7,7 +7,7 @@
 AppId={{7B1C2E5A-3F0D-4C7B-9E21-5A6D8C4F1B90}
 AppName={#AppName}
 AppVersion={#AppVersion}
-AppPublisher=Sergey
+AppPublisher=Егоров Сергей aka Evpatiy
 DefaultDirName={autopf}\{#AppName}
 DefaultGroupName={#AppName}
 DisableProgramGroupPage=yes
