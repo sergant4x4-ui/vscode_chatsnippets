@@ -1,0 +1,58 @@
+<Window x:Class="ChatSnippets.App.Views.PanelWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chat Snippets" Width="80" Height="928"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True"
+        SnapsToDevicePixels="True" UseLayoutRounding="True" FontFamily="Segoe UI">
+    <Border Background="{StaticResource WindowBg}" CornerRadius="8" BorderBrush="{StaticResource BorderBrushNormal}" BorderThickness="1">
+        <Grid>
+            <Grid.RowDefinitions>
+                <RowDefinition Height="32"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Border x:Name="TitleBar" Grid.Row="0" Background="Transparent" CornerRadius="8,8,0,0" ToolTip="Chat Snippets">
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center">
+                    <ToggleButton x:Name="PinButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE718;"
+                                  ToolTip="Keep panel open" AutomationProperties.Name="Keep panel open"
+                                  IsChecked="{Binding Pinned, Mode=TwoWay}"/>
+                    <Button x:Name="GearButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE713;"
+                            ToolTip="Settings" AutomationProperties.Name="Settings" Click="GearButton_Click"/>
+                    <Button x:Name="MinimizeButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE921;"
+                            ToolTip="Hide panel" AutomationProperties.Name="Hide panel" Click="MinimizeButton_Click"/>
+                </StackPanel>
+            </Border>
+
+            <ScrollViewer Grid.Row="1" VerticalScrollBarVisibility="Hidden" HorizontalScrollBarVisibility="Disabled">
+                <StackPanel Margin="8,8,8,8">
+                    <ItemsControl x:Name="SnippetList" ItemsSource="{Binding Items}">
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Button Style="{StaticResource SnippetButton}" AllowDrop="True"
+                                        Command="{Binding DataContext.ExecuteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                        CommandParameter="{Binding}"
+                                        AutomationProperties.Name="{Binding AutomationName}"
+                                        PreviewMouseLeftButtonDown="Snippet_PreviewMouseLeftButtonDown"
+                                        PreviewMouseMove="Snippet_PreviewMouseMove" Drop="Snippet_Drop">
+                                    <Button.ContextMenu>
+                                        <ContextMenu>
+                                            <MenuItem Header="Edit..."
+                                                      Command="{Binding DataContext.EditCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                      CommandParameter="{Binding}"/>
+                                            <MenuItem Header="Delete"
+                                                      Command="{Binding DataContext.DeleteCommand, RelativeSource={RelativeSource AncestorType=ItemsControl}}"
+                                                      CommandParameter="{Binding}"/>
+                                        </ContextMenu>
+                                    </Button.ContextMenu>
+                                </Button>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+                    <Button Style="{StaticResource AddButton}" Command="{Binding AddCommand}"
+                            ToolTip="Add icon" AutomationProperties.Name="Add icon"/>
+                </StackPanel>
+            </ScrollViewer>
+        </Grid>
+    </Border>
+</Window>

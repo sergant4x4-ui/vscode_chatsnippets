@@ -1,0 +1,12 @@
+<Window x:Class="ChatSnippets.App.Views.FlagWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Chat Snippets flag" Width="16" Height="64"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True">
+    <Border x:Name="Body" Background="{StaticResource Accent}" CornerRadius="6" Cursor="Hand"
+            MouseLeftButtonUp="Body_MouseLeftButtonUp" ToolTip="Chat Snippets">
+        <TextBlock x:Name="Arrow" Text="&#xE76C;" FontFamily="Segoe MDL2 Assets" FontSize="11" Foreground="White"
+                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Border>
+</Window>

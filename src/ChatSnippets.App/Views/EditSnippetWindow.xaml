@@ -1,0 +1,49 @@
+<Window x:Class="ChatSnippets.App.Views.EditSnippetWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:v="clr-namespace:ChatSnippets.App.Views"
+        Title="Edit icon" Width="340" SizeToContent="Height"
+        WindowStyle="None" AllowsTransparency="True" Background="Transparent"
+        ResizeMode="NoResize" ShowInTaskbar="False" Topmost="True"
+        WindowStartupLocation="CenterScreen" FontFamily="Segoe UI">
+    <Border Background="{StaticResource WindowBg}" CornerRadius="8" BorderBrush="{StaticResource BorderBrushNormal}" BorderThickness="1" Padding="16">
+        <StackPanel>
+            <TextBlock Text="Edit icon" FontSize="16" FontWeight="SemiBold" Margin="0,0,0,12"
+                       MouseLeftButtonDown="Title_MouseLeftButtonDown" Background="Transparent"/>
+
+            <StackPanel Orientation="Horizontal">
+                <Border Width="88" Height="88" CornerRadius="10" Background="{StaticResource ButtonBg}"
+                        BorderBrush="{StaticResource BorderBrushNormal}" BorderThickness="1">
+                    <Image x:Name="Preview" Width="48" Height="48"/>
+                </Border>
+                <Button x:Name="ChooseButton" Content="Choose image..." Margin="12,0,0,0" Height="40" Width="190"
+                        VerticalAlignment="Top" Background="#2B2D34" Foreground="{StaticResource TextPrimary}"
+                        BorderBrush="{StaticResource BorderBrushNormal}" Click="ChooseButton_Click"/>
+            </StackPanel>
+
+            <TextBlock Text="Text to paste" Margin="0,14,0,4"/>
+            <TextBox x:Name="TextBox" Height="120" AcceptsReturn="True" TextWrapping="Wrap" VerticalScrollBarVisibility="Auto"
+                     Background="#17181C" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource BorderBrushNormal}"
+                     CaretBrush="{StaticResource TextPrimary}" Padding="6"/>
+
+            <TextBlock Text="Hotkey" Margin="0,12,0,4"/>
+            <v:HotkeyBox x:Name="HotkeyField" Height="32" Padding="6,5" Background="#17181C"
+                         Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource BorderBrushNormal}"
+                         ValueChanged="HotkeyField_ValueChanged"/>
+            <TextBlock Text="Press the combination" Foreground="{StaticResource TextSecondary}" Margin="0,4,0,0" FontSize="12"/>
+            <TextBlock x:Name="ErrorText" Foreground="{StaticResource Danger}" FontSize="12" Margin="0,4,0,0"
+                       TextWrapping="Wrap" Visibility="Collapsed"/>
+
+            <Grid Margin="0,16,0,0">
+                <Button x:Name="DeleteButton" Content="Delete" HorizontalAlignment="Left" VerticalAlignment="Center"
+                        Foreground="{StaticResource Danger}" Background="Transparent" BorderThickness="0" Click="DeleteButton_Click"/>
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
+                    <Button x:Name="SaveButton" Content="Save" Width="88" Height="34" IsDefault="True"
+                            Background="#1A73FF" Foreground="White" BorderThickness="0" Click="SaveButton_Click"/>
+                    <Button Content="Cancel" Width="88" Height="34" Margin="8,0,0,0" IsCancel="True"
+                            Background="#2B2D34" Foreground="{StaticResource TextPrimary}" BorderThickness="0"/>
+                </StackPanel>
+            </Grid>
+        </StackPanel>
+    </Border>
+</Window>
