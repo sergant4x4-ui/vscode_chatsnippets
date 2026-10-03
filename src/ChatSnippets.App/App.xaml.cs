@@ -29,7 +29,7 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             AppLog.Write("DISPATCHER: " + args.Exception);
-            MessageBox.Show(Loc.T("Error", args.Exception.Message), "Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Loc.T("Error", args.Exception.Message), "ClaudeCode Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
 
@@ -90,7 +90,7 @@ public partial class App : Application
         var failed = RegisterAllHotkeys();
         if (failed.Count > 0)
             MessageBox.Show(Loc.T("HotkeysFailed", string.Join(", ", failed)),
-                "Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Warning);
+                "ClaudeCode Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
     async Task ExecuteAsync(SnippetViewModel vm, bool fromHotkey)
