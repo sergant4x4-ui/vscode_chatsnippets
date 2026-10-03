@@ -65,4 +65,28 @@ public sealed class ConfigStoreTests : IDisposable
         File.WriteAllText(ConfigPath, "");
         Assert.Empty(new ConfigStore(ConfigPath).Load().Snippets);
     }
+
+    [Theory]
+    [InlineData("{\"Snippets\":null,\"Window\":null}")]
+    [InlineData("{\"Snippets\":[null],\"Window\":{}}")]
+    [InlineData("null")]
+    public void Load_ValidJsonWithNulls_NormalizesInsteadOfCrashing(string json)
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(ConfigPath, json);
+        var cfg = new ConfigStore(ConfigPath).Load();
+        Assert.NotNull(cfg.Snippets);
+        Assert.NotNull(cfg.Window);
+        Assert.DoesNotContain(null, cfg.Snippets);
+    }
+
+    [Fact]
+    public void Load_RepairsEmptyAndDuplicateIds()
+    {
+        Directory.CreateDirectory(_dir);
+        File.WriteAllText(ConfigPath, "{\"Snippets\":[{\"Id\":\"\",\"Text\":\"a\"},{\"Id\":\"x\",\"Text\":\"b\"},{\"Id\":\"x\",\"Text\":\"c\"}]}");
+        var ids = new ConfigStore(ConfigPath).Load().Snippets.Select(s => s.Id).ToList();
+        Assert.Equal(3, ids.Distinct().Count());
+        Assert.DoesNotContain("", ids);
+    }
 }

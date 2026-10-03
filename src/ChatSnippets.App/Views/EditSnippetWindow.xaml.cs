@@ -37,7 +37,7 @@ public partial class EditSnippetWindow : Window
         var dialog = new OpenFileDialog { Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico|All files|*.*" };
         if (dialog.ShowDialog(this) != true) return;
         try { _iconFile = _icons.Import(dialog.FileName); }
-        catch (IOException ex) { ShowError("Не удалось скопировать картинку: " + ex.Message); return; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { ShowError("Не удалось скопировать картинку: " + ex.Message); return; }
         ShowPreview();
     }
 
@@ -50,10 +50,11 @@ public partial class EditSnippetWindow : Window
             bmp.BeginInit();
             bmp.CacheOption = BitmapCacheOption.OnLoad;
             bmp.UriSource = new Uri(_icons.PathOf(_iconFile));
+            bmp.DecodePixelWidth = 192;                 // не декодируем огромное фото целиком
             bmp.EndInit();
             Preview.Source = bmp;
         }
-        catch (Exception ex) when (ex is NotSupportedException or FileFormatException) { Preview.Source = null; }
+        catch (Exception ex) when (ex is NotSupportedException or FileFormatException or IOException or UnauthorizedAccessException) { Preview.Source = null; }
     }
 
     void HotkeyField_ValueChanged(object? sender, EventArgs e) => ValidateHotkey();

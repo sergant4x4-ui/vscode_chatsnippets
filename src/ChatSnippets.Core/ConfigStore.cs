@@ -17,17 +17,37 @@ public sealed class ConfigStore(string path)
     public AppConfig Load()
     {
         if (!File.Exists(path)) return new AppConfig();
-        try
-        {
-            var text = File.ReadAllText(path);
-            if (string.IsNullOrWhiteSpace(text)) return new AppConfig();
-            return JsonSerializer.Deserialize<AppConfig>(text, Options) ?? new AppConfig();
-        }
+        string text;
+        try { text = File.ReadAllText(path); }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { return new AppConfig(); }
+        if (string.IsNullOrWhiteSpace(text)) return new AppConfig();
+
+        try { return Normalize(JsonSerializer.Deserialize<AppConfig>(text, Options)); }
         catch (JsonException)
         {
-            File.Move(path, path + ".bad", overwrite: true);
+            try { File.Move(path, path + ".bad", overwrite: true); }
+            catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { }
             return new AppConfig();
         }
+    }
+
+    /// <summary>Синтаксически верный JSON с null-ами или дублями не должен ронять программу.</summary>
+    static AppConfig Normalize(AppConfig? config)
+    {
+        config ??= new AppConfig();
+        config.Window ??= new WindowSettings();
+        config.Snippets = (config.Snippets ?? new List<Snippet>()).Where(s => s is not null).ToList();
+        var seen = new HashSet<string>();
+        foreach (var s in config.Snippets)
+        {
+            s.Text ??= "";
+            if (string.IsNullOrWhiteSpace(s.Id) || !seen.Add(s.Id))
+            {
+                s.Id = Guid.NewGuid().ToString("N");
+                seen.Add(s.Id);
+            }
+        }
+        return config;
     }
 
     public void Save(AppConfig config)

@@ -15,9 +15,9 @@ public class PasteCoordinatorTests
         public string? GetProcessName() => Process;
 
         void MaybeBusy() { if (BusyFailuresLeft > 0) { BusyFailuresLeft--; throw new ClipboardBusyException(); } }
-        public string? ReadText() { MaybeBusy(); Log.Add("read"); return ClipboardText; }
+        public object? Snapshot() { MaybeBusy(); Log.Add("read"); return ClipboardText; }
         public void WriteText(string text) { MaybeBusy(); Log.Add("write:" + text); ClipboardText = text; }
-        public void Restore(string? previous) { MaybeBusy(); Log.Add("restore:" + (previous ?? "<null>")); ClipboardText = previous; }
+        public void Restore(object? previous) { MaybeBusy(); Log.Add("restore:" + ((string?)previous ?? "<null>")); ClipboardText = (string?)previous; }
         public Task SendCtrlVAsync() { Log.Add("ctrl+v"); return Task.CompletedTask; }
     }
 
@@ -78,5 +78,18 @@ public class PasteCoordinatorTests
         var delays = 0;
         var c = new PasteCoordinator(f, f, f, _ => { delays++; if (delays == 1) f.BusyFailuresLeft = 99; return Task.CompletedTask; });
         Assert.Equal(PasteResult.Pasted, await c.PasteAsync("т"));
+    }
+
+    [Fact]
+    public async Task ConcurrentPastes_AreSerialized()
+    {
+        var f = new Fakes();
+        var c = new PasteCoordinator(f, f, f, async _ => await Task.Yield());
+        await Task.WhenAll(c.PasteAsync("a"), c.PasteAsync("b"));
+        Assert.Equal(new[]
+        {
+            "read", "write:a", "ctrl+v", "restore:старое",
+            "read", "write:b", "ctrl+v", "restore:старое",
+        }, f.Log);
     }
 }

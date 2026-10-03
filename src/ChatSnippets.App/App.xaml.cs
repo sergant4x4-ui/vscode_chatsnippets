@@ -21,6 +21,11 @@ public partial class App : Application
     protected override void OnStartup(StartupEventArgs e)
     {
         base.OnStartup(e);
+        DispatcherUnhandledException += (_, args) =>
+        {
+            MessageBox.Show("Ошибка: " + args.Exception.Message, "Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Error);
+            args.Handled = true;
+        };
 
         // Второй экземпляр тихо выходит: хоткеи всё равно заняты первым.
         _singleInstance = new Mutex(true, "ChatSnippets.SingleInstance", out var isFirst);
@@ -75,7 +80,7 @@ public partial class App : Application
 
     void AddSnippet()
     {
-        var snippet = new Snippet { Hotkey = HotkeyRules.NextFreeDefault(_config.Snippets).ToString() };
+        var snippet = new Snippet { Hotkey = HotkeyRules.NextFreeDefault(_config.Snippets)?.ToString() };
         EditSnippet(snippet, isNew: true, existing: null);
     }
 
@@ -84,6 +89,7 @@ public partial class App : Application
         // Редактируем копию: Cancel не должен менять оригинал.
         var working = new Snippet { Id = snippet.Id, IconFile = snippet.IconFile, Text = snippet.Text, Hotkey = snippet.Hotkey };
         _dock.Suspended = true;
+        _hotkeys.UnregisterAll();
         try
         {
             var others = _config.Snippets.Where(s => s.Id != snippet.Id).ToList();
@@ -101,13 +107,22 @@ public partial class App : Application
             else existing?.Refresh();
             SaveAndRebind();
         }
-        finally { _dock.Suspended = false; }
+        finally
+        {
+            RegisterAllHotkeys();
+            _dock.Suspended = false;
+        }
     }
 
     void DeleteSnippet(SnippetViewModel vm)
     {
-        var answer = MessageBox.Show("Удалить эту иконку?", "Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
-        if (answer == MessageBoxResult.Yes) DeleteSnippetCore(vm);
+        _dock.Suspended = true;
+        try
+        {
+            var answer = MessageBox.Show("Удалить эту иконку?", "Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            if (answer == MessageBoxResult.Yes) DeleteSnippetCore(vm);
+        }
+        finally { _dock.Suspended = false; }
     }
 
     void DeleteSnippetCore(SnippetViewModel vm)
@@ -147,7 +162,7 @@ public partial class App : Application
     void Save()
     {
         try { _store.Save(_config); }
-        catch (IOException) { /* диск занят/недоступен — настройки не критичны, повторим при следующем изменении */ }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { /* диск занят/недоступен — настройки не критичны, повторим при следующем изменении */ }
     }
 
     protected override void OnExit(ExitEventArgs e)

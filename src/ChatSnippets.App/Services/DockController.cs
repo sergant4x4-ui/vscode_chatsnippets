@@ -4,6 +4,7 @@ using System.Windows.Input;
 using System.Windows.Interop;
 using System.Windows.Media;
 using System.Windows.Threading;
+using Microsoft.Win32;
 using ChatSnippets.App.Interop;
 using ChatSnippets.App.Views;
 using ChatSnippets.Core;
@@ -46,6 +47,10 @@ internal sealed class DockController
         title.MouseLeftButtonDown += TitleBar_Down;
         title.MouseMove += TitleBar_Move;
         title.MouseLeftButtonUp += TitleBar_Up;
+        title.LostMouseCapture += TitleBar_LostCapture;
+        // Монитор отключили, сменили разрешение/масштаб или сдвинули панель задач — заново прижимаемся к краю.
+        SystemEvents.DisplaySettingsChanged += (_, _) => _panel.Dispatcher.BeginInvoke(Relayout);
+        SystemEvents.UserPreferenceChanged += (_, _) => _panel.Dispatcher.BeginInvoke(Relayout);
     }
 
     public bool IsExpanded => _expanded;
@@ -183,13 +188,21 @@ internal sealed class DockController
             m.PanelW, m.PanelH, Native.SWP_NOACTIVATE);
     }
 
+    /// <summary>Захват мыши отняли (UAC, блокировка экрана): перетаскивание не должно «зависнуть».</summary>
+    void TitleBar_LostCapture(object sender, MouseEventArgs e)
+    {
+        if (!_dragging) return;
+        _dragging = false;
+        Relayout();
+    }
+
     void TitleBar_Up(object sender, MouseButtonEventArgs e)
     {
         if (!_dragging) return;
         _dragging = false;
         ((UIElement)sender).ReleaseMouseCapture();
         Native.GetCursorPos(out var p);
-        var m = Measure();
+        var m = Measure(Native.MonitorFromPoint(p, Native.MONITOR_DEFAULTTONEAREST));   // монитор, куда отпустили панель
         var dx = p.X - _dragStartCursor.X;
         var dy = p.Y - _dragStartCursor.Y;
         if (Math.Abs(dx) > 3 || Math.Abs(dy) > 3)      // простой клик по шапке — не перетаскивание
@@ -204,13 +217,17 @@ internal sealed class DockController
     // ---- измерения ----
     readonly record struct Metrics(PxRect Work, double Scale, int PanelW, int PanelH, int FlagW, int FlagH);
 
-    Metrics Measure()
+    /// <summary>
+    /// Монитор берём по флажку (он всегда на экране), а не по панели: спрятанная панель стоит за краем
+    /// и «ближайшим» мог оказаться соседний монитор.
+    /// </summary>
+    Metrics Measure(IntPtr? monitorOverride = null)
     {
+        var monitor = monitorOverride ?? Native.MonitorFromWindow(_flagHwnd, Native.MONITOR_DEFAULTTONEAREST);
         var info = new Native.MONITORINFO { cbSize = Marshal.SizeOf<Native.MONITORINFO>() };
-        var monitor = Native.MonitorFromWindow(_panelHwnd, Native.MONITOR_DEFAULTTONEAREST);
         Native.GetMonitorInfo(monitor, ref info);
         var work = new PxRect(info.rcWork.Left, info.rcWork.Top, info.rcWork.Right - info.rcWork.Left, info.rcWork.Bottom - info.rcWork.Top);
-        var scale = VisualTreeHelper.GetDpi(_panel).DpiScaleX;
+        var scale = Native.GetDpiForMonitor(monitor, 0, out var dpiX, out _) == 0 ? dpiX / 96.0 : VisualTreeHelper.GetDpi(_panel).DpiScaleX;
         return new Metrics(work, scale,
             (int)Math.Round(PanelDips * scale),
             DockLogic.PanelHeightPx(work, _itemCount() + 1, scale),

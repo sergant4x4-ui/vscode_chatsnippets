@@ -33,13 +33,20 @@ public class HotkeyRulesTests
     public void NextFreeDefault_SkipsTaken()
     {
         var all = new[] { S("a", "Ctrl+Alt+1"), S("b", "Ctrl+Alt+2") };
-        Assert.Equal("Ctrl+Alt+3", HotkeyRules.NextFreeDefault(all).ToString());
+        Assert.Equal("Ctrl+Alt+3", HotkeyRules.NextFreeDefault(all)?.ToString());
     }
 
     [Fact]
     public void NextFreeDefault_AfterDigitsGoesToLetters()
     {
         var all = "1234567890".Select(d => S("s" + d, $"Ctrl+Alt+{d}")).ToList();
-        Assert.Equal("Ctrl+Alt+Q", HotkeyRules.NextFreeDefault(all).ToString());
+        Assert.Equal("Ctrl+Alt+Q", HotkeyRules.NextFreeDefault(all)?.ToString());
+    }
+
+    [Fact]
+    public void NextFreeDefault_ReturnsNull_WhenAllTaken()
+    {
+        var all = "1234567890QWERTYUIOP".Select(d => S("s" + d, $"Ctrl+Alt+{d}")).ToList();
+        Assert.Null(HotkeyRules.NextFreeDefault(all));
     }
 }

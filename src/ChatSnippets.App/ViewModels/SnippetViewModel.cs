@@ -58,7 +58,7 @@ public sealed class SnippetViewModel : ObservableBase
             bmp.Freeze();
             return bmp;
         }
-        catch (Exception ex) when (ex is NotSupportedException or IOException or FileFormatException)
+        catch (Exception ex) when (ex is NotSupportedException or IOException or FileFormatException or UnauthorizedAccessException)
         {
             return Placeholder;
         }

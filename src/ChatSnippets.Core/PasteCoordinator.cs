@@ -4,10 +4,11 @@ public interface IForegroundWindow { string? GetProcessName(); }
 
 public interface IClipboardAccess
 {
-    string? ReadText();
+    /// <summary>Снимок всего содержимого буфера (любые форматы). null — буфер пуст.</summary>
+    object? Snapshot();
     void WriteText(string text);
-    /// <summary>previous == null → буфер очищается (в нём не было текста).</summary>
-    void Restore(string? previous);
+    /// <summary>snapshot == null → буфер очищается (он был пуст).</summary>
+    void Restore(object? snapshot);
 }
 
 public interface IKeySender
@@ -25,19 +26,27 @@ public sealed class PasteCoordinator(
 {
     static readonly string[] VsCodeProcesses = { "Code", "Code - Insiders" };
     const int Attempts = 3;
+    readonly SemaphoreSlim _gate = new(1, 1);   // вставки идут строго по одной: иначе буфер перепутается
     static readonly TimeSpan RetryPause = TimeSpan.FromMilliseconds(50);
-    static readonly TimeSpan RestorePause = TimeSpan.FromMilliseconds(150);
+    static readonly TimeSpan RestorePause = TimeSpan.FromMilliseconds(700);
 
     public async Task<PasteResult> PasteAsync(string text)
+    {
+        await _gate.WaitAsync();
+        try { return await PasteCoreAsync(text); }
+        finally { _gate.Release(); }
+    }
+
+    async Task<PasteResult> PasteCoreAsync(string text)
     {
         var process = foreground.GetProcessName();
         if (process is null || !VsCodeProcesses.Contains(process, StringComparer.OrdinalIgnoreCase))
             return PasteResult.NotVsCode;
 
-        string? previous;
+        object? previous;
         try
         {
-            previous = await RetryAsync(clipboard.ReadText);
+            previous = await RetryAsync(clipboard.Snapshot);
             await RetryAsync(() => { clipboard.WriteText(text); return 0; });
         }
         catch (ClipboardBusyException)
