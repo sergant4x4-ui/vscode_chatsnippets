@@ -134,6 +134,8 @@
                         </Trigger>
                         <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(ToggleButton.IsChecked)}" Value="True">
                             <Setter TargetName="G" Property="Foreground" Value="{StaticResource Accent}"/>
+                            <Setter TargetName="Bd" Property="Background" Value="#2A3F66"/>
+                            <Setter TargetName="G" Property="Text" Value="&#xE840;"/>
                         </DataTrigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
