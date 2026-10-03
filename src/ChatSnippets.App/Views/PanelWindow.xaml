@@ -1,6 +1,7 @@
 <Window x:Class="ChatSnippets.App.Views.PanelWindow"
         xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:l="clr-namespace:ChatSnippets.App.Localization"
         Title="Chat Snippets" Width="80" Height="928"
         WindowStyle="None" AllowsTransparency="True" Background="Transparent"
         ResizeMode="NoResize" ShowInTaskbar="False" ShowActivated="False" Topmost="True"
@@ -27,7 +28,7 @@
                         <RowDefinition Height="28"/>
                     </Grid.RowDefinitions>
                     <Border x:Name="DragGrip" Grid.Row="0" Margin="5,5,5,0" CornerRadius="5" Background="#3A3D4A" BorderBrush="#555967" BorderThickness="1"
-                            ToolTip="Drag here to move the panel" Cursor="SizeAll">
+                            ToolTip="{l:Loc Drag}" Cursor="SizeAll">
                         <Rectangle Margin="8,4" IsHitTestVisible="False">
                             <Rectangle.Fill>
                                 <DrawingBrush TileMode="Tile" Viewport="0,0,7,7" ViewportUnits="Absolute"
@@ -45,12 +46,12 @@
                     </Border>
                     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Arrow">
                         <ToggleButton x:Name="PinButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE718;"
-                                      ToolTip="Keep panel open" AutomationProperties.Name="Keep panel open"
+                                      ToolTip="{l:Loc Pin}" AutomationProperties.Name="{l:Loc Pin}"
                                       IsChecked="{Binding Pinned, Mode=TwoWay}"/>
                         <Button x:Name="GearButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE713;"
-                                ToolTip="Settings" AutomationProperties.Name="Settings" Click="GearButton_Click"/>
+                                ToolTip="{l:Loc Settings}" AutomationProperties.Name="{l:Loc Settings}" Click="GearButton_Click"/>
                         <Button x:Name="MinimizeButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE921;"
-                                ToolTip="Hide panel" AutomationProperties.Name="Hide panel" Click="MinimizeButton_Click"/>
+                                ToolTip="{l:Loc Hide}" AutomationProperties.Name="{l:Loc Hide}" Click="MinimizeButton_Click"/>
                     </StackPanel>
                 </Grid>
             </Border>
@@ -66,7 +67,7 @@
                         </Button.ToolTip>
                         <Button.ContextMenu>
                             <ContextMenu>
-                                <MenuItem Header="Hotkey..." Click="LayoutHotkeyMenu_Click"/>
+                                <MenuItem Header="{l:Loc HotkeyMenu}" Click="LayoutHotkeyMenu_Click"/>
                             </ContextMenu>
                         </Button.ContextMenu>
                     </Button>
@@ -85,8 +86,8 @@
                                     </Button.ToolTip>
                                     <Button.ContextMenu>
                                         <ContextMenu>
-                                            <MenuItem Header="Edit..." Click="EditMenu_Click"/>
-                                            <MenuItem Header="Delete" Click="DeleteMenu_Click"/>
+                                            <MenuItem Header="{l:Loc EditMenu}" Click="EditMenu_Click"/>
+                                            <MenuItem Header="{l:Loc Delete}" Click="DeleteMenu_Click"/>
                                         </ContextMenu>
                                     </Button.ContextMenu>
                                 </Button>
@@ -94,10 +95,10 @@
                         </ItemsControl.ItemTemplate>
                     </ItemsControl>
                     <Button Style="{StaticResource AddButton}" Command="{Binding AddCommand}"
-                            ToolTip="Add icon" AutomationProperties.Name="Add icon"/>
+                            ToolTip="{l:Loc AddIcon}" AutomationProperties.Name="{l:Loc AddIcon}"/>
                     <ToggleButton Style="{StaticResource EditToggle}" IsChecked="{Binding EditMode, Mode=TwoWay}"
-                                  ToolTip="Edit mode: click an icon to change its picture, text or hotkey"
-                                  AutomationProperties.Name="Edit mode"/>
+                                  ToolTip="{l:Loc EditModeTip}"
+                                  AutomationProperties.Name="{l:Loc EditModeName}"/>
                 </StackPanel>
             </ScrollViewer>
         </Grid>

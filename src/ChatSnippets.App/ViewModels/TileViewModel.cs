@@ -20,6 +20,13 @@ public abstract class TileViewModel : ObservableBase
     public abstract string AutomationName { get; }
     public abstract string TooltipText { get; }
 
+    /// <summary>Язык сменился: обновить подсказку и подпись.</summary>
+    public virtual void Relocalize()
+    {
+        Raise(nameof(AutomationName));
+        Raise(nameof(TooltipText));
+    }
+
     public async Task FlashAsync(SnippetState state)
     {
         State = state;

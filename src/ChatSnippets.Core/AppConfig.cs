@@ -26,4 +26,6 @@ public sealed class AppConfig
     public WindowSettings Window { get; set; } = new();
     /// <summary>Глобальный хоткей «исправить раскладку»; null — не назначен.</summary>
     public string? LayoutFixHotkey { get; set; }
+    /// <summary>Язык интерфейса: "ru" или "en".</summary>
+    public string Language { get; set; } = "ru";
 }

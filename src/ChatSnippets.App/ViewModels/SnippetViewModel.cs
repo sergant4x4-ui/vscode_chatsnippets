@@ -1,6 +1,7 @@
 using System.IO;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using ChatSnippets.App.Localization;
 using ChatSnippets.Core;
 
 namespace ChatSnippets.App.ViewModels;
@@ -21,7 +22,7 @@ public sealed class SnippetViewModel : TileViewModel
     public Snippet Model { get; }
 
     public override string AutomationName =>
-        string.IsNullOrEmpty(HotkeyDisplay) ? "Paste snippet" : $"Paste snippet, {HotkeyDisplay}";
+        string.IsNullOrEmpty(HotkeyDisplay) ? Loc.T("PasteSnippet") : Loc.T("PasteSnippetKey", HotkeyDisplay);
 
     /// <summary>То, что будет вставлено: показываем при наведении (длинный текст обрезаем).</summary>
     public override string TooltipText
@@ -29,9 +30,9 @@ public sealed class SnippetViewModel : TileViewModel
         get
         {
             var text = Model.Text;
-            if (string.IsNullOrWhiteSpace(text)) return "(no text)";
+            if (string.IsNullOrWhiteSpace(text)) return Loc.T("NoText");
             var shown = text.Length > TooltipLimit ? text[..TooltipLimit] + "…" : text;
-            return Model.PressEnter ? shown + "\n⏎ Enter нажмётся сам" : shown;
+            return Model.PressEnter ? shown + "\n" + Loc.T("EnterAuto") : shown;
         }
     }
 

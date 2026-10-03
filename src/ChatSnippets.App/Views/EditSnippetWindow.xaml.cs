@@ -2,6 +2,7 @@ using System.IO;
 using System.Windows;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
+using ChatSnippets.App.Localization;
 using ChatSnippets.Core;
 using Microsoft.Win32;
 
@@ -35,10 +36,10 @@ public partial class EditSnippetWindow : Window
 
     void ChooseButton_Click(object sender, RoutedEventArgs e)
     {
-        var dialog = new OpenFileDialog { Filter = "Images|*.png;*.jpg;*.jpeg;*.bmp;*.gif;*.ico|All files|*.*" };
+        var dialog = new OpenFileDialog { Filter = Loc.T("ImagesFilter") };
         if (dialog.ShowDialog(this) != true) return;
         try { _iconFile = _icons.Import(dialog.FileName); }
-        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { ShowError("Не удалось скопировать картинку: " + ex.Message); return; }
+        catch (Exception ex) when (ex is IOException or UnauthorizedAccessException) { ShowError(Loc.T("CopyFail", ex.Message)); return; }
         ShowPreview();
     }
 
@@ -65,8 +66,8 @@ public partial class EditSnippetWindow : Window
     {
         if (HotkeyField.Value is not { } hotkey) { HideError(); return true; }
         var conflict = HotkeyRules.FindConflict(_others, _working.Id, hotkey);
-        if (conflict is not null) { ShowError("Это сочетание уже назначено другой иконке."); return false; }
-        if (hotkey != _originalHotkey && !_isFreeInSystem(hotkey)) { ShowError("Это сочетание занято другой программой."); return false; }
+        if (conflict is not null) { ShowError(Loc.T("UsedByIcon")); return false; }
+        if (hotkey != _originalHotkey && !_isFreeInSystem(hotkey)) { ShowError(Loc.T("UsedByProgram")); return false; }
         HideError();
         return true;
     }
@@ -83,7 +84,7 @@ public partial class EditSnippetWindow : Window
 
     void DeleteButton_Click(object sender, RoutedEventArgs e)
     {
-        var answer = MessageBox.Show(this, "Удалить эту иконку?", "Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+        var answer = MessageBox.Show(this, Loc.T("DeleteConfirm"), Loc.T("Delete"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
         if (answer != MessageBoxResult.Yes) return;
         Deleted = true;
         DialogResult = true;

@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Windows;
 using System.Windows.Media;
+using ChatSnippets.App.Localization;
 using ChatSnippets.Core;
 
 namespace ChatSnippets.App.ViewModels;
@@ -14,16 +15,23 @@ public sealed class LayoutFixViewModel : TileViewModel
         SetHotkey(null);
     }
 
-    public override string AutomationName =>
-        HotkeyDisplay == "Layout" ? "Сменить раскладку введённого текста" : $"Сменить раскладку введённого текста, {HotkeyDisplay}";
+    Hotkey? _hotkey;
 
-    public override string TooltipText =>
-        "Сменить раскладку введённого текста\nghbdtn ⇄ привет — выделенного, а если ничего не выделено, то всего текста в поле\nПравый клик — назначить горячую клавишу";
+    public override string AutomationName =>
+        _hotkey is { } h ? Loc.T("LayoutNameKey", h.ToString()) : Loc.T("LayoutName");
+
+    public override string TooltipText => Loc.T("LayoutTip");
 
     public void SetHotkey(string? text)
     {
-        HotkeyDisplay = Hotkey.TryParse(text, out var h) ? h.ToString() : "Layout";
-        Raise(nameof(AutomationName));
+        _hotkey = Hotkey.TryParse(text, out var h) ? h : null;
+        Relocalize();
+    }
+
+    public override void Relocalize()
+    {
+        HotkeyDisplay = _hotkey?.ToString() ?? Loc.T("LayoutLabel");
+        base.Relocalize();
     }
 
     static ImageSource BuildIcon()

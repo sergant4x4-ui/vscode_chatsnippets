@@ -1,5 +1,6 @@
 using System.IO;
 using System.Windows;
+using ChatSnippets.App.Localization;
 using ChatSnippets.App.Services;
 using ChatSnippets.App.ViewModels;
 using ChatSnippets.App.Views;
@@ -28,7 +29,7 @@ public partial class App : Application
         DispatcherUnhandledException += (_, args) =>
         {
             AppLog.Write("DISPATCHER: " + args.Exception);
-            MessageBox.Show("Ошибка: " + args.Exception.Message, "Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Error);
+            MessageBox.Show(Loc.T("Error", args.Exception.Message), "Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Error);
             args.Handled = true;
         };
 
@@ -49,6 +50,7 @@ public partial class App : Application
         _store = new ConfigStore(ConfigStore.DefaultPath);
         _config = _store.Load();
         _icons = new IconStore(IconStore.DefaultDirectory);
+        Loc.SetLanguage(_config.Language);
         _vm = new PanelViewModel(_config, _icons);
         _hotkeys = new HotkeyService();
         _paste = new PasteCoordinator(new ForegroundProbe(), new WpfClipboard(), new KeySender(), Task.Delay);
@@ -82,11 +84,12 @@ public partial class App : Application
             if (vm is not null) _ = ExecuteAsync(vm, fromHotkey: true);
         };
         panel.ExitRequested += Shutdown;
+        panel.LanguageChosen += code => { Loc.SetLanguage(code); _config.Language = code; Save(); };
 
         _dock.Start();
         var failed = RegisterAllHotkeys();
         if (failed.Count > 0)
-            MessageBox.Show("Не удалось занять сочетания (их использует другая программа): " + string.Join(", ", failed),
+            MessageBox.Show(Loc.T("HotkeysFailed", string.Join(", ", failed)),
                 "Chat Snippets", MessageBoxButton.OK, MessageBoxImage.Warning);
     }
 
@@ -119,8 +122,8 @@ public partial class App : Application
         try
         {
             var dialog = new HotkeyPromptWindow(_config.LayoutFixHotkey, hotkey =>
-                HotkeyRules.FindConflict(_config.Snippets, null, hotkey) is not null ? "This combination is already used by an icon."
-                : !_hotkeys.IsFree(hotkey) ? "This combination is taken by another program."
+                HotkeyRules.FindConflict(_config.Snippets, null, hotkey) is not null ? Loc.T("UsedByIcon")
+                : !_hotkeys.IsFree(hotkey) ? Loc.T("UsedByProgram")
                 : null);
             if (dialog.ShowDialog() != true) return;
             _config.LayoutFixHotkey = dialog.Result;
@@ -177,7 +180,7 @@ public partial class App : Application
         _dock.Suspended = true;
         try
         {
-            var answer = MessageBox.Show("Удалить эту иконку?", "Delete", MessageBoxButton.YesNo, MessageBoxImage.Warning);
+            var answer = MessageBox.Show(Loc.T("DeleteConfirm"), Loc.T("Delete"), MessageBoxButton.YesNo, MessageBoxImage.Warning);
             if (answer == MessageBoxResult.Yes) DeleteSnippetCore(vm);
         }
         finally { _dock.Suspended = false; }

@@ -3,6 +3,7 @@ using System.Windows.Controls;
 using System.Windows.Controls.Primitives;
 using System.Windows.Input;
 using ChatSnippets.App.Interop;
+using ChatSnippets.App.Localization;
 using ChatSnippets.App.ViewModels;
 using ChatSnippets.Core;
 
@@ -15,6 +16,7 @@ public partial class PanelWindow : Window
     public event Action? MinimizeClicked;
     public event Action<DockSide>? SideChosen;
     public event Action? ExitRequested;
+    public event Action<string>? LanguageChosen;
 
     public PanelWindow(PanelViewModel viewModel)
     {
@@ -39,18 +41,25 @@ public partial class PanelWindow : Window
     void GearButton_Click(object sender, RoutedEventArgs e)
     {
         var menu = new ContextMenu();
-        var layout = new MenuItem { Header = "Layout fix hotkey..." };
+        var layout = new MenuItem { Header = Loc.T("LayoutHotkeyMenu") };
         layout.Click += (_, _) => Vm.LayoutHotkeyCommand.Execute(null);
-        var left = new MenuItem { Header = "Left side" };
+        var left = new MenuItem { Header = Loc.T("LeftSide") };
         left.Click += (_, _) => SideChosen?.Invoke(DockSide.Left);
-        var right = new MenuItem { Header = "Right side" };
+        var right = new MenuItem { Header = Loc.T("RightSide") };
         right.Click += (_, _) => SideChosen?.Invoke(DockSide.Right);
-        var exit = new MenuItem { Header = "Exit" };
+        var exit = new MenuItem { Header = Loc.T("Exit") };
         exit.Click += (_, _) => ExitRequested?.Invoke();
         menu.Items.Add(layout);
         menu.Items.Add(new Separator());
         menu.Items.Add(left);
         menu.Items.Add(right);
+        menu.Items.Add(new Separator());
+        foreach (var (code, key) in new[] { ("ru", "LangRu"), ("en", "LangEn") })
+        {
+            var lang = new MenuItem { Header = (Loc.Language == code ? "✓ " : "    ") + Loc.T(key) };
+            lang.Click += (_, _) => LanguageChosen?.Invoke(code);
+            menu.Items.Add(lang);
+        }
         menu.Items.Add(new Separator());
         menu.Items.Add(exit);
         menu.PlacementTarget = (UIElement)sender;

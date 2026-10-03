@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Windows.Input;
+using ChatSnippets.App.Localization;
 using ChatSnippets.Core;
 
 namespace ChatSnippets.App.ViewModels;
@@ -31,6 +32,11 @@ public sealed class PanelViewModel : ObservableBase
         AddCommand = new RelayCommand(_ => AddRequested?.Invoke());
         LayoutFixCommand = new RelayCommand(_ => LayoutFixRequested?.Invoke());
         LayoutHotkeyCommand = new RelayCommand(_ => LayoutHotkeyRequested?.Invoke());
+        Loc.Changed += () =>
+        {
+            LayoutFix.Relocalize();
+            foreach (var item in Items) item.Relocalize();
+        };
     }
 
     public ObservableCollection<SnippetViewModel> Items { get; }
