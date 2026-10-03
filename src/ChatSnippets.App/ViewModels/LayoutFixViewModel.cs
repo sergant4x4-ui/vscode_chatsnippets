@@ -15,10 +15,10 @@ public sealed class LayoutFixViewModel : TileViewModel
     }
 
     public override string AutomationName =>
-        HotkeyDisplay == "Layout" ? "Fix keyboard layout" : $"Fix keyboard layout, {HotkeyDisplay}";
+        HotkeyDisplay == "Layout" ? "Сменить раскладку введённого текста" : $"Сменить раскладку введённого текста, {HotkeyDisplay}";
 
     public override string TooltipText =>
-        "Fix layout: ghbdtn ⇄ привет\nFixes the selected text in the chat; if nothing is selected — the whole field.\nRight-click to set a hotkey.";
+        "Сменить раскладку введённого текста\nghbdtn ⇄ привет — выделенного, а если ничего не выделено, то всего текста в поле\nПравый клик — назначить горячую клавишу";
 
     public void SetHotkey(string? text)
     {

@@ -5,6 +5,7 @@ namespace ChatSnippets.App.Interop;
 internal static class Native
 {
     public const int GWL_EXSTYLE = -20;
+    public const int WS_EX_TOPMOST = 0x00000008;
     public const int WS_EX_NOACTIVATE = 0x08000000;
     public const int WS_EX_TOOLWINDOW = 0x00000080;
     public const int SW_HIDE = 0, SW_SHOWNOACTIVATE = 4;

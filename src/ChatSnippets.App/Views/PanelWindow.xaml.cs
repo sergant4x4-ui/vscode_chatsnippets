@@ -28,8 +28,11 @@ public partial class PanelWindow : Window
     public Border TitleBarElement => TitleBar;
 
     /// <summary>Подсказки открываются в сторону экрана, а не за его край.</summary>
-    public void ApplySide(DockSide side) =>
+    public void ApplySide(DockSide side)
+    {
         ToolTipService.SetPlacement(this, side == DockSide.Right ? PlacementMode.Left : PlacementMode.Right);
+        ToolTipService.SetHorizontalOffset(this, side == DockSide.Right ? -14 : 14);
+    }
 
     void MinimizeButton_Click(object sender, RoutedEventArgs e) => MinimizeClicked?.Invoke();
 

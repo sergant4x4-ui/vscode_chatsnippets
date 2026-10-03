@@ -191,10 +191,14 @@ internal sealed class DockController
             Relayout();
             return;
         }
+        // Поднимаем только окна, которые перестали быть «поверх всех». Постоянный подъём панели закрывал бы
+        // всплывающие подсказки и меню, которые тоже «поверх всех».
         const uint keep = Native.SWP_NOMOVE | Native.SWP_NOSIZE | Native.SWP_NOACTIVATE | Native.SWP_SHOWWINDOW;
-        Native.SetWindowPos(_flagHwnd, Native.HWND_TOPMOST, 0, 0, 0, 0, keep);
-        if (_expanded) Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST, 0, 0, 0, 0, keep);
+        if (!IsTopmost(_flagHwnd)) Native.SetWindowPos(_flagHwnd, Native.HWND_TOPMOST, 0, 0, 0, 0, keep);
+        if (_expanded && !IsTopmost(_panelHwnd)) Native.SetWindowPos(_panelHwnd, Native.HWND_TOPMOST, 0, 0, 0, 0, keep);
     }
+
+    static bool IsTopmost(IntPtr hwnd) => (Native.GetWindowLong(hwnd, Native.GWL_EXSTYLE) & Native.WS_EX_TOPMOST) != 0;
 
     void OnHoverTick()
     {
