@@ -132,11 +132,40 @@
                         <Trigger Property="IsMouseOver" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#2B2D34"/>
                         </Trigger>
-                        <DataTrigger Binding="{Binding RelativeSource={RelativeSource TemplatedParent}, Path=(ToggleButton.IsChecked)}" Value="True">
-                            <Setter TargetName="G" Property="Foreground" Value="{StaticResource Accent}"/>
+                    </ControlTemplate.Triggers>
+                </ControlTemplate>
+            </Setter.Value>
+        </Setter>
+    </Style>
+
+    <!-- Кнопка pin: нажатое состояние — синяя рамка и подложка, булавка закрашена и повёрнута -->
+    <Style x:Key="PinToggle" TargetType="ToggleButton">
+        <Setter Property="Width" Value="24"/>
+        <Setter Property="Height" Value="24"/>
+        <Setter Property="Cursor" Value="Hand"/>
+        <Setter Property="FocusVisualStyle" Value="{x:Null}"/>
+        <Setter Property="Foreground" Value="{StaticResource TextSecondary}"/>
+        <Setter Property="Template">
+            <Setter.Value>
+                <ControlTemplate TargetType="ToggleButton">
+                    <Border x:Name="Bd" Background="Transparent" BorderBrush="Transparent" BorderThickness="1" CornerRadius="5">
+                        <TextBlock x:Name="G" Text="&#xE718;" FontFamily="Segoe MDL2 Assets" FontSize="13"
+                                   Foreground="{TemplateBinding Foreground}" RenderTransformOrigin="0.5,0.5"
+                                   HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                    </Border>
+                    <ControlTemplate.Triggers>
+                        <Trigger Property="IsMouseOver" Value="True">
+                            <Setter TargetName="Bd" Property="Background" Value="#2B2D34"/>
+                        </Trigger>
+                        <Trigger Property="IsChecked" Value="True">
                             <Setter TargetName="Bd" Property="Background" Value="#2A3F66"/>
+                            <Setter TargetName="Bd" Property="BorderBrush" Value="{StaticResource Accent}"/>
+                            <Setter TargetName="G" Property="Foreground" Value="{StaticResource Accent}"/>
                             <Setter TargetName="G" Property="Text" Value="&#xE840;"/>
-                        </DataTrigger>
+                            <Setter TargetName="G" Property="RenderTransform">
+                                <Setter.Value><RotateTransform Angle="45"/></Setter.Value>
+                            </Setter>
+                        </Trigger>
                     </ControlTemplate.Triggers>
                 </ControlTemplate>
             </Setter.Value>

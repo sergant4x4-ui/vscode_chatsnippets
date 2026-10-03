@@ -45,7 +45,7 @@
                         </Rectangle>
                     </Border>
                     <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Center" VerticalAlignment="Center" Cursor="Arrow">
-                        <ToggleButton x:Name="PinButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE718;"
+                        <ToggleButton x:Name="PinButton" Style="{StaticResource PinToggle}"
                                       ToolTip="{l:Loc Pin}" AutomationProperties.Name="{l:Loc Pin}"
                                       IsChecked="{Binding Pinned, Mode=TwoWay}"/>
                         <Button x:Name="GearButton" Style="{StaticResource TitleGlyphButton}" Content="&#xE713;"
