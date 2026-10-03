@@ -23,6 +23,7 @@ public class PasteCoordinatorTests
         public string? Pasted;             // что реально вставилось по Ctrl+V
         bool _selectedAll;
         public string? ReadText() { MaybeBusy(); Log.Add("text"); return ClipboardText; }
+        public Task SendKeyAsync(int vk) { Log.Add(vk == 0x0D ? "enter" : "key:" + vk); return Task.CompletedTask; }
         public Task SendCtrlAsync(int vk)
         {
             Log.Add("ctrl+" + char.ToLowerInvariant((char)vk));
@@ -158,5 +159,31 @@ public class PasteCoordinatorTests
         var f = new Fakes { BusyFailuresLeft = 99, Selection = "ghbdtn" };
         Assert.Equal(LayoutFixResult.ClipboardBusy, await Make(f).FixLayoutAsync());
         Assert.Null(f.Pasted);
+    }
+
+    // ---- Enter после вставки ----
+
+    [Fact]
+    public async Task PressEnter_SendsEnterAfterPaste_BeforeRestoringClipboard()
+    {
+        var f = new Fakes();
+        Assert.Equal(PasteResult.Pasted, await Make(f).PasteAsync("т", pressEnter: true));
+        Assert.Equal(new[] { "read", "write:т", "ctrl+v", "enter", "restore:старое" }, f.Log);
+    }
+
+    [Fact]
+    public async Task NoEnter_ByDefault()
+    {
+        var f = new Fakes();
+        await Make(f).PasteAsync("т");
+        Assert.DoesNotContain("enter", f.Log);
+    }
+
+    [Fact]
+    public async Task PressEnter_NotSent_WhenNotVsCode()
+    {
+        var f = new Fakes { Process = "chrome" };
+        await Make(f).PasteAsync("т", pressEnter: true);
+        Assert.Empty(f.Log);
     }
 }

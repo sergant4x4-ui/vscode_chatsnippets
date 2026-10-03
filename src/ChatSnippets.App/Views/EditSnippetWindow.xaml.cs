@@ -24,6 +24,7 @@ public partial class EditSnippetWindow : Window
         _working = working; _icons = icons; _others = others; _isFreeInSystem = isFreeInSystem;
         _iconFile = working.IconFile;
         TextBox.Text = working.Text;
+        EnterCheck.IsChecked = working.PressEnter;
         _originalHotkey = Hotkey.TryParse(working.Hotkey, out var h) && !isNew ? h : null;
         HotkeyField.Value = Hotkey.TryParse(working.Hotkey, out var shown) ? shown : null;
         DeleteButton.Visibility = isNew ? Visibility.Collapsed : Visibility.Visible;
@@ -74,6 +75,7 @@ public partial class EditSnippetWindow : Window
     {
         if (!ValidateHotkey()) return;
         _working.Text = TextBox.Text;
+        _working.PressEnter = EnterCheck.IsChecked == true;
         _working.Hotkey = HotkeyField.Value?.ToString();
         _working.IconFile = _iconFile;
         DialogResult = true;

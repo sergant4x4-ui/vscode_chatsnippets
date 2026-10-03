@@ -26,6 +26,9 @@
                      Background="#17181C" Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource BorderBrushNormal}"
                      CaretBrush="{StaticResource TextPrimary}" Padding="6"/>
 
+            <CheckBox x:Name="EnterCheck" Margin="0,10,0,0" Content="Press Enter after pasting (send at once)"
+                      Foreground="{StaticResource TextPrimary}"/>
+
             <TextBlock Text="Hotkey" Margin="0,12,0,4"/>
             <v:HotkeyBox x:Name="HotkeyField" Height="32" Padding="6,5" Background="#17181C"
                          Foreground="{StaticResource TextPrimary}" BorderBrush="{StaticResource BorderBrushNormal}"

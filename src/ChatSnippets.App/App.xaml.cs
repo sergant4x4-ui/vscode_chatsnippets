@@ -93,7 +93,7 @@ public partial class App : Application
     async Task ExecuteAsync(SnippetViewModel vm, bool fromHotkey)
     {
         if (string.IsNullOrEmpty(vm.Model.Text)) { await vm.FlashAsync(SnippetState.Error); return; }
-        var result = await _paste.PasteAsync(vm.Model.Text);
+        var result = await _paste.PasteAsync(vm.Model.Text, vm.Model.PressEnter);
         if (result == PasteResult.Pasted)
         {
             // Success — только после подтверждённой вставки. Панель НЕ сворачиваем.
@@ -143,7 +143,7 @@ public partial class App : Application
     void EditSnippet(Snippet snippet, bool isNew, SnippetViewModel? existing)
     {
         // Редактируем копию: Cancel не должен менять оригинал.
-        var working = new Snippet { Id = snippet.Id, IconFile = snippet.IconFile, Text = snippet.Text, Hotkey = snippet.Hotkey };
+        var working = new Snippet { Id = snippet.Id, IconFile = snippet.IconFile, Text = snippet.Text, Hotkey = snippet.Hotkey, PressEnter = snippet.PressEnter };
         _dock.Suspended = true;
         _hotkeys.UnregisterAll();
         try
@@ -156,7 +156,7 @@ public partial class App : Application
 
             if (dialog.Deleted) { if (existing is not null) DeleteSnippetCore(existing); return; }
 
-            snippet.Text = working.Text; snippet.Hotkey = working.Hotkey; snippet.IconFile = working.IconFile;
+            snippet.Text = working.Text; snippet.Hotkey = working.Hotkey; snippet.IconFile = working.IconFile; snippet.PressEnter = working.PressEnter;
             if (isNew)
             {
                 _config.Snippets.Add(snippet);

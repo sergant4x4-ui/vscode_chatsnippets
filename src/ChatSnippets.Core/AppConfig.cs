@@ -8,6 +8,8 @@ public sealed class Snippet
     public string? IconFile { get; set; }
     public string Text { get; set; } = "";
     public string? Hotkey { get; set; }
+    /// <summary>После вставки нажать Enter (сразу отправить сообщение).</summary>
+    public bool PressEnter { get; set; }
 }
 
 public sealed class WindowSettings

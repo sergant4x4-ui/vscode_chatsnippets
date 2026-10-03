@@ -17,6 +17,9 @@ public interface IKeySender
 {
     /// <summary>Дожидается отпускания Ctrl/Alt/Shift/Win и посылает Ctrl+клавиша (vk — виртуальный код: C, V, A).</summary>
     Task SendCtrlAsync(int vk);
+
+    /// <summary>Дожидается отпускания модификаторов и нажимает одну клавишу без Ctrl (например Enter).</summary>
+    Task SendKeyAsync(int vk);
 }
 
 public sealed class ClipboardBusyException : Exception { }
@@ -29,20 +32,21 @@ public sealed class PasteCoordinator(
     IForegroundWindow foreground, IClipboardAccess clipboard, IKeySender keys, Func<TimeSpan, Task> delay)
 {
     static readonly string[] VsCodeProcesses = { "Code", "Code - Insiders" };
-    const int Attempts = 3, VkA = 0x41, VkC = 0x43, VkV = 0x56;
+    const int Attempts = 3, VkA = 0x41, VkC = 0x43, VkV = 0x56, VkReturn = 0x0D;
     readonly SemaphoreSlim _gate = new(1, 1);   // вставки идут строго по одной: иначе буфер перепутается
     static readonly TimeSpan RetryPause = TimeSpan.FromMilliseconds(50);
+    static readonly TimeSpan EnterPause = TimeSpan.FromMilliseconds(300);   // дать VS Code принять вставку до Enter
     static readonly TimeSpan CopyPause = TimeSpan.FromMilliseconds(150);
     static readonly TimeSpan RestorePause = TimeSpan.FromMilliseconds(700);
 
-    public async Task<PasteResult> PasteAsync(string text)
+    public async Task<PasteResult> PasteAsync(string text, bool pressEnter = false)
     {
         await _gate.WaitAsync();
-        try { return await PasteCoreAsync(text); }
+        try { return await PasteCoreAsync(text, pressEnter); }
         finally { _gate.Release(); }
     }
 
-    async Task<PasteResult> PasteCoreAsync(string text)
+    async Task<PasteResult> PasteCoreAsync(string text, bool pressEnter)
     {
         if (!IsVsCodeActive()) return PasteResult.NotVsCode;
 
@@ -58,6 +62,11 @@ public sealed class PasteCoordinator(
         }
 
         await keys.SendCtrlAsync(VkV);
+        if (pressEnter)
+        {
+            await delay(EnterPause);
+            await keys.SendKeyAsync(VkReturn);
+        }
         await delay(RestorePause);
 
         try { await RetryAsync(() => { clipboard.Restore(previous); return 0; }); }

@@ -30,7 +30,8 @@ public sealed class SnippetViewModel : TileViewModel
         {
             var text = Model.Text;
             if (string.IsNullOrWhiteSpace(text)) return "(no text)";
-            return text.Length > TooltipLimit ? text[..TooltipLimit] + "…" : text;
+            var shown = text.Length > TooltipLimit ? text[..TooltipLimit] + "…" : text;
+            return Model.PressEnter ? shown + "\n⏎ Enter нажмётся сам" : shown;
         }
     }
 
